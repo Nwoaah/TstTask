@@ -4,6 +4,23 @@ import java.util.Set;
 
 public class Method {
 
+    public static final String ID = "id";
+    public static final String AMOUNT = "amount";
+    public static final String STATUS = "status";
+    public static final String EMPTY_JSON = "Empty json";
+    public static final String ID_LESS_THAN_ZERO = "id less than zero";
+    public static final String NO_ID = "no id";
+    public static final String AMOUNT_IS_LESS_THAN_ZERO = "Amount is less than zero";
+    public static final String NO_AMOUNT = "no amount";
+    public static final String NO_STATUS = "no status";
+    public static final String WRONG_STATUS = "Wrong status";
+    public static final String PAYMENT = "\"payment\"";
+    public static final String RETURN = "\"return\"";
+    public static final String DOUBLE_ID = "double id";
+    public static final String JSON_IS_NOT_AN_ARRAY = "json is not an array";
+    public static final String HOW_COULD_THAT_HAPPEN = "how could that happen";
+
+
 
     public static int value(String json) throws IllegalArgumentException {
         int value = 0;
@@ -11,68 +28,72 @@ public class Method {
         int val;
         Set set = new HashSet<Integer>();
         if (json.equals("")) {
-            throw new IllegalArgumentException("Empty json");
+            throw new IllegalArgumentException(EMPTY_JSON);
         }
         JsonParser jsonParser = new JsonParser();
         JsonElement jsonElement = jsonParser.parse(json);
         String status;
         if (jsonElement.isJsonArray()) {
             JsonArray jsonArray = jsonElement.getAsJsonArray();
-            if (jsonArray.size() < 1) {
-                throw new IllegalArgumentException("array is empty");
-            }
             for (int i = 0; i < jsonArray.size(); i++) {
 
                 JsonObject jsonObject = jsonArray.get(i).getAsJsonObject();
 
-                if (jsonObject.has("id")) {
-                    id = Integer.parseInt(String.valueOf(jsonObject.get("id")));
+                if (jsonObject.has(ID)) {
+                    id = Integer.parseInt(String.valueOf(jsonObject.get(ID)));
                     if (id < 0) {
-                        throw new IllegalArgumentException("id less than zero");
+                        throw new NegativeIdException(ID_LESS_THAN_ZERO);
                     }
                 } else {
-                    throw new IllegalArgumentException("no id");
+                    throw new IllegalArgumentException(NO_ID);
                 }
 
-                if (jsonObject.has("amount")) {
-                    val = Integer.parseInt(String.valueOf(jsonObject.get("amount"))); // проверка на отрицательные значения имеется , на переполнение нет
+                if (jsonObject.has(AMOUNT)) {
+                    val = Integer.parseInt(String.valueOf(jsonObject.get(AMOUNT))); // проверка на отрицательные значения имеется , на переполнение нет
                     if (val < 0) {
-                        throw new IllegalArgumentException("Amount is less than zero");
+                        throw new IllegalArgumentException(AMOUNT_IS_LESS_THAN_ZERO);
                     }
                 } else {
-                    throw new IllegalArgumentException("no amount");
+                    throw new IllegalArgumentException(NO_AMOUNT);
                 }
 
-                if (jsonObject.has("status")) {
-                    status = String.valueOf(jsonObject.get("status")); // тут на статусы внутренняя проверка в свиче
+                if (jsonObject.has(STATUS)) {
+                    status = String.valueOf(jsonObject.get(STATUS)); // тут на статусы внутренняя проверка в свиче
                     //String status = String.valueOf(jsonObject.get("status")).replaceAll("\"", ""); изначально был такой вариант, сам себе баг бы придумал? решил кавычки оставить
                     //  System.out.println(status);
                 } else {
-                    throw new IllegalArgumentException("no status");
+                    throw new IllegalArgumentException(NO_STATUS);
                 }
 
                 if (!set.contains(id)) {
                     set.add(id);
                     switch (status) {
-                        case "\"payment\"":
+                        case PAYMENT:
                             value = Math.addExact(value,val);
                             break;
-                        case "\"return\"":
+                        case RETURN:
                             value = Math.subtractExact(value,val);
                             break;
                         default:
-                            throw new IllegalArgumentException("Wrong status");
+                            throw new IllegalArgumentException(WRONG_STATUS);
                     }
                 } else {
-                    throw new IllegalArgumentException("double id");
+                    throw new IllegalArgumentException(DOUBLE_ID);
                 }
             }
         } else {
-            throw new IllegalArgumentException("json is not an array");
+            throw new IllegalArgumentException(JSON_IS_NOT_AN_ARRAY);
         }
         if (value < 0) {
-            throw new IllegalArgumentException("how could that happen");
+            throw new IllegalArgumentException(HOW_COULD_THAT_HAPPEN);
         }
         return value;
+    }
+
+
+}
+class NegativeIdException extends RuntimeException {
+    public NegativeIdException(String s) {
+        super(s);
     }
 }

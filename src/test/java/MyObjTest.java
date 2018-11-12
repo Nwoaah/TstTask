@@ -1,8 +1,27 @@
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonSyntaxException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class MethodTest {
+public class MyObjTest {
+
+
+    @Test
+    public void positive() {
+        String tst = "[" +
+                "{\"id\":0,\"amount\":1,\"status\":\"return\"}," +
+                "{\"id\":1,\"amount\":9,\"status\":\"return\"}," +
+                "{\"id\":2,\"amount\":2,\"status\":\"return\"}," +
+                "{\"id\":3,\"amount\":1,\"status\":\"return\"}," +
+                "{\"id\":4,\"amount\":0,\"status\":\"return\"}," +
+                "{\"id\":5,\"amount\":9,\"status\":\"payment\"}," +
+                "{\"id\":6,\"amount\":7,\"status\":\"payment\"}," +
+                "{\"id\":7,\"amount\":8,\"status\":\"payment\"}," +
+                "{\"id\":8,\"amount\":1,\"status\":\"payment\"}," +
+                "{\"id\":9,\"amount\":9,\"status\":\"payment\"}]\n";
+
+        Assert.assertEquals(MyObj.value(tst), 21, "passed");
+    }
 
     @Test
     public void positive1() {
@@ -20,7 +39,7 @@ public class MethodTest {
                 "}" +
                 "]";
 
-        Assert.assertEquals(Method.value(json), 900, "passed");
+        Assert.assertEquals(MyObj.value(json), 900, "passed");
 
     }
 
@@ -60,7 +79,7 @@ public class MethodTest {
                 "}" +
                 "]";
 
-        Assert.assertEquals(Method.value(json), 3600, "passed");
+        Assert.assertEquals(MyObj.value(json), 3600, "passed");
 
     }
 
@@ -130,14 +149,14 @@ public class MethodTest {
                 "}" +
                 "]";
 
-        Assert.assertEquals(Method.value(json), 0, "passed");
+        Assert.assertEquals(MyObj.value(json), 0, "passed");
 
     }
 
-    @Test(expectedExceptions = {IllegalArgumentException.class},
-            expectedExceptionsMessageRegExp = "no amount")
-    public void throwIfcontractBrokenAmount() throws IllegalArgumentException {
+    @Test(expectedExceptions = {NullPointerException.class})
+    public void throwIfcontractBrokenAmount() throws NullPointerException {
         // sum вместо amount
+        // падает с NPE, в Method падала c IllegalArgumentException
         String json = "[" +
                 "{" +
                 "\"id\": 12," +
@@ -151,16 +170,16 @@ public class MethodTest {
                 "}" +
                 "]";
 
-        Method.value(json);
+        MyObj.value(json);
 
     }
 
-    @Test(expectedExceptions = {IllegalArgumentException.class},
-            expectedExceptionsMessageRegExp = "Empty json")
-    public void throwIfEmpty() throws IllegalArgumentException {
+    @Test(expectedExceptions = {NullPointerException.class})
+    public void throwIfEmpty() throws NullPointerException {
         // пустая строка
+        // тут падает с NPE, в Method падает с illegalargumentException
         String json = "";
-        Method.value(json);
+        MyObj.value(json);
     }
 
     @Test(expectedExceptions = {IllegalArgumentException.class, JsonParseException.class})
@@ -177,7 +196,7 @@ public class MethodTest {
                 "\"amount\": 150," +
                 "\"status\": \"return\"" +
                 "}";
-        Method.value(json);
+        MyObj.value(json);
     }
 
     //    @Test(expectedExceptions = {JsonSyntaxException.class})
@@ -194,7 +213,7 @@ public class MethodTest {
 //                "\"status\": \"return\"" +
 //                "}" +
 //                "]";
-//        Method.value(json);
+//        MyObj.value(json);
 //    }
 //
 //    @Test(expectedExceptions = {JsonSyntaxException.class})
@@ -211,7 +230,7 @@ public class MethodTest {
 //                "\"status\": \"return\"" +
 //                "}" +
 //                "]";
-//        Method.value(json);
+//        MyObj.value(json);
 //    }
 
 //    @Test(expectedExceptions = {JsonSyntaxException.class})
@@ -228,15 +247,15 @@ public class MethodTest {
 //                "\"status\": \"return\"" +
 //                "}" +
 //                "]";
-//        Method.value(json);
+//        MyObj.value(json);
 //    }
 
-    @Test(expectedExceptions = {IllegalArgumentException.class},
-            expectedExceptionsMessageRegExp = "json is not an array")
-    public void throwIfNotAnArray() throws IllegalArgumentException {
+    @Test(expectedExceptions = {JsonSyntaxException.class})
+    public void throwIfNotAnArray() throws JsonSyntaxException {
         // если json не массив
+        // в method падает с IllegalArgumentException
         String json = "{}";
-        Method.value(json);
+        MyObj.value(json);
     }
 
     // пришел к выводу, что тест лишний, так как с точки зрения бизнеса транзакций может и не быть, однако не указано, в каком виде тогда будет json, поэтому предположил, что он будет просто пустым массивом,тогда value = 0
@@ -245,14 +264,14 @@ public class MethodTest {
 //    public void throwIfAnEmptyArray() throws IllegalArgumentException {
 //        // если json пустой массив
 //        String json = "[]";
-//        Method.value(json);
+//        MyObj.value(json);
 //    }
 
     @Test(expectedExceptions = NullPointerException.class)
     public void throwIfNull() throws NullPointerException {
         // NPE
         String json = null;
-        Method.value(json);
+        MyObj.value(json);
     }
 
     @Test(expectedExceptions = {IllegalArgumentException.class},
@@ -271,7 +290,7 @@ public class MethodTest {
                 "\"status\": \"return\"" +
                 "}" +
                 "]";
-        Method.value(json);
+        MyObj.value(json);
     }
 
     @Test(expectedExceptions = {NegativeIdException.class},
@@ -290,12 +309,13 @@ public class MethodTest {
                 "\"status\": \"return\"" +
                 "}" +
                 "]";
-        Method.value(json);
+        MyObj.value(json);
     }
 
-    @Test(expectedExceptions = {NumberFormatException.class})
-    public void throwIfIdIsString() throws NumberFormatException {
+    @Test(expectedExceptions = {JsonSyntaxException.class})
+    public void throwIfIdIsString() throws JsonSyntaxException {
         // если вместо int в id у нас строка(другой формат, который не кастится к инту)
+        // в Method падает с NumberFormatException, тут ошибка на этапе десереализации
         String json = "[" +
                 "{" +
                 "\"id\": dsa," +
@@ -308,12 +328,13 @@ public class MethodTest {
                 "\"status\": \"return\"" +
                 "}" +
                 "]";
-        Method.value(json);
+        MyObj.value(json);
     }
 
-    @Test(expectedExceptions = {NumberFormatException.class})
-    public void throwIfAmountisString() throws NumberFormatException {
+    @Test(expectedExceptions = {JsonParseException.class})
+    public void throwIfAmountisString() throws JsonParseException {
         // если в amount формат который не кастится к инту
+        // этот тест у Method падает с NumberFormatException, но тут уже при десериализации выдает другую ошибку
         String json = "[" +
                 "{" +
                 "\"id\": 10," +
@@ -326,7 +347,7 @@ public class MethodTest {
                 "\"status\": \"return\"" +
                 "}" +
                 "]";
-        Method.value(json);
+        MyObj.value(json);
     }
 
     @Test(expectedExceptions = {IllegalArgumentException.class},
@@ -345,7 +366,7 @@ public class MethodTest {
                 "\"status\": \"return\"" +
                 "}" +
                 "]";
-        Method.value(json);
+        MyObj.value(json);
     }
 
 
@@ -366,7 +387,7 @@ public class MethodTest {
                 "}" +
                 "]";
 
-        Method.value(json);
+        MyObj.value(json);
 
     }
 
@@ -387,7 +408,7 @@ public class MethodTest {
                 "}" +
                 "]";
 
-        Method.value(json);
+        MyObj.value(json);
 
     }
 
@@ -402,6 +423,5 @@ public class MethodTest {
         Method.value(json);
 
     }
-
 
 }
